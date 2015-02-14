@@ -30,16 +30,11 @@ class RubiksCube:
         for x in range(1,7):
             # facelet
             for y in range(0,4):
-                index = x+y
+                Index = x+y
                 c = colors[index] % NUMFACE
                 b = createCubeState(x,y,1,c)
-                print b
                 a.append(b)
         return a
-#        self.states = a
-#    def getStates(self):
-#        hi = self.a
-#        return hi
 
 colornums = range(1,25)
 pcolornums = range(1,25)
@@ -47,6 +42,6 @@ shuffle(pcolornums)
 
 sample = RubiksCube(pcolornums)
 print sample
-#ss = sample.getStates
+
 for i in range(0,1):
     print colorFunctionCubeState(sample.states[i])
