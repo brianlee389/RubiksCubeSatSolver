@@ -1,13 +1,13 @@
 from random import shuffle
 
-STARTSTATE = 0
 NUMFACE = 6
 NUMCOLORS = 6
 NUMFACELETS = 4
 RED = [0, 1, 1]
+
 FRONT = 1
-BACK = 2
-LEFT = 3
+BACK = 3
+LEFT = 2
 RIGHT = 4
 UP = 5
 DOWN = 6
@@ -25,50 +25,6 @@ def colorFunctionCubeState(c, state):
 def getColor(c):
     return c[2]
 
-# face transition function for UP
-# clockwise - 90
-def upf(i):
-    if i == 0:
-        return 1
-    elif i == 1:
-        return 3
-    elif i == 2:
-        return 0
-    elif i == 3:
-        return 2
-
-def upg(i):
-    return (i%4)+1
-
-# counter clockwise -90
-def upfprime(i):
-    if i == 0:
-        return 2
-    elif i == 1:
-        return 0
-    elif i == 2:
-        return 3
-    elif i == 3:
-        return 1
-
-def upgprime(i):
-    return ((i+2) % 4) + 1
-
-# half turn 180
-def upf2(i):
-    if i == 0:
-        return 3
-    elif i == 1:
-        return 2
-    elif i == 2:
-        return 1
-    elif i == 3:
-        return 0
-
-def upg2(i):
-    return ((i+1) % 4) + 1
-# end face transition functions
-
 #2x2x2 Cube Class
 # color order list contains number between 0-25
 class RubiksCube:
@@ -77,6 +33,7 @@ class RubiksCube:
     def __init__(self,colors):
         state =  self.createState(colors)
         self.States = []
+        self.CurrentStateNum = 0
         self.States.append(state)
 
     def createState(self, colors):
@@ -94,20 +51,14 @@ class RubiksCube:
                 a.append(b)
         return a
     
-    # incompleted
-    def moveFunction(self, face, dir):
-        sn = len(self.States)
-        fn = upf
-        gn = upg
-        if dir == 1:
-            fn = upfprime
-            gn = upgprime
-        elif dir == 2:
-            fn = upf2
-            gn = upg2
+    def upMove():
+        nextStateNum = self.CurrentStateNum + 1
+        newState = copy.deepcopy(self.States[self.CurrentStateNum])
+        indexUp = (UP-1)*4
+        for u in range(indexUP, indexUP+4):
+            createCubeFacelet(UP, newState[1], newState)
+            #StatenewState[u]
 
-        #compute function
-        # (fn,gn)
     #incompleted
     def createMappings(self):
         return 0

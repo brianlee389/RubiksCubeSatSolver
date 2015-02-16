@@ -3,7 +3,6 @@
 # Minisat will solve the steps needed to solve the cube.
 import os
 import subprocess
-STARTSTATE = 0
 NUMFACE = 6
 NUMCOLORS = 6
 NUMFACELETS = 4
@@ -15,7 +14,6 @@ RIGHT = 4
 UP = 5
 DOWN = 6
 
-#
 class MinisatRubiks:
 	def __init__(self):
 		self.variables = 8
