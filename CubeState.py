@@ -15,9 +15,24 @@ RIGHT = 4
 UP = 5
 DOWN = 6
 
+frontIndex = (FRONT-1)
+backIndex = (BACK-1)*4
+leftIndex = (LEFT-1)*4
+rightIndex = (RIGHT-1)*4
+upIndex = (UP-1)*4
+downIndex = (DOWN-1)*4
+
+frontFacelets = range(frontIndex, frontIndex+4)
+backFacelets = range(backIndex, backIndex+4)
+rightFacelets = range(rightIndex, rightIndex+4)
+leftFacelets = range(leftIndex, leftIndex+4)
+upFacelets = range(upIndex, upIndex+4)
+downFacelets = range(downIndex, downIndex+4)
+        
 CW = 90
 CCW = -90
 HALF = 180
+
 # Assume (i,j,m,k)
 def createCubeFacelet(face,facelet,color=1):
     return (face,facelet,color)
@@ -26,6 +41,11 @@ def createCubeFacelet(face,facelet,color=1):
 def colorFunctionCubeState(c, state):
     f = 'c('+ str(c[0]) + ', ' + str(c[1]) +', ' + str(state) + ', ' + str(c[2]) +')'
     return f
+def colorEquals(c,state,c2,state2):
+    # returns string c(i,j,m) = c(a,b,c)
+    ceq = colorFunctionCubeState(c2, state2)
+    ceq = ceq + ' = ' + colorFunctionCubeState(c, state)
+    return ceq
 
 # Assume (i,j,m,k)
 def getColor(c):
@@ -35,6 +55,23 @@ def getFacelet(c):
 def getFace(c):
     return c[0]
 
+def oppositeFace(face):
+    facen = face+1
+    if facen == FRONT:
+        return BACK
+    elif facen == BACK:
+        return FRONT
+    elif facen == LEFT:
+        return RIGHT
+    elif facen == RIGHT:
+        return LEFT
+    elif facen == UP:
+        return DOWN
+    elif facen == DOWN:
+        return UP
+    else:
+        print "Doesn't work"
+        return -1
 #2x2x2 Cube Class
 # color order list contains number between 0-25
 class RubiksCube:
@@ -79,34 +116,39 @@ class RubiksCube:
         nextStateNum = self.CurrentStateNum + 1
         oldState = copy.deepcopy(self.States[self.CurrentStateNum])
         newState = copy.deepcopy(oldState)
-        indexUp = (UP-1)*4
+        
+        # facelets being changed/unchanged
+        unchanged = downFacelets 
+        changed = frontFacelets + leftFacelets + backFacelets + rightFacelets
+        
         # UP FACE
         # 0 - retrieve facelet face number
         # 1 - retrieve facelet facelet number
         # 2 - retrieve facelet color
-        for j in range(indexUp, indexUp+4):
+        for j in upFacelets:
             # facelet state
             facelet = oldState[j]
             fln = getFacelet(facelet) # retrieve facelet number
+            
             # get the state when moved
             ns = createCubeFacelet(UP, movefacelet(fln), getColor(facelet))
 
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
         print "-----"
+
         # Rest of the faces that are changed
-        for j in range(0, indexUp):
+        for j in changed:
             # facelet state
             facelet = oldState[j]
             facen = getFace(facelet)
 
-            ns = createCubeFacelet(moveface(facen), getFacelet(facelet), getColor(facelet))
-            # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
-            print pclause
+            if getFacelet(facelet) < 2:
+                ns = createCubeFacelet(moveface(facen), getFacelet(facelet), getColor(facelet))
+                # generate the string
+                pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
+                print pclause
 
     def downMove(self, dir):
         moveface = downG
@@ -123,11 +165,12 @@ class RubiksCube:
         oldState = copy.deepcopy(self.States[self.CurrentStateNum])
         newState = copy.deepcopy(oldState)
         
-        indexDown = (DOWN-1)*4
-        indexUp = (UP-1)*4
-
+        # facelets being changed/unchanged
+        unchanged = upFacelets 
+        changed = frontFacelets + leftFacelets + backFacelets + rightFacelets
+        
         # DOWN FACE
-        for j in range(indexDown, indexDown+4):
+        for j in downFacelets:
             # facelet state
             facelet = oldState[j]
             fln = getFacelet(facelet) # retrieve facelet number
@@ -139,18 +182,22 @@ class RubiksCube:
             pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
             print pclause
         print "-----"
+        
         # Rest of the faces that are changed
-        for j in range(0, indexUp):
+        for j in changed:
             # facelet state
             facelet = oldState[j]
             facen = getFace(facelet)
-
-            ns = createCubeFacelet(moveface(facen), getFacelet(facelet), getColor(facelet))
-            # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
-            print pclause
+            if getFacelet(facelet) < 2:
+                ns = createCubeFacelet(moveface(facen), getFacelet(facelet), getColor(facelet))
+                # generate the string
+                pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
+                pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+                print pclause
 # back,front, left,right need to account for facelet change
+# TODO
+# requires to not go through all the facelets (if statement)
+# also which facelets are moved for each turn
     def frontMove(self, dir):
         moveface = frontG
         movefacelet = cw
@@ -165,32 +212,32 @@ class RubiksCube:
         # create new deep copies of states
         oldState = copy.deepcopy(self.States[self.CurrentStateNum])
         newState = copy.deepcopy(oldState)
-        
-        # index of the front    
-        indexFront = (FRONT-1)
+
+        # facelets being changed/unchanged
+        unchanged = backFacelets
+        changed = leftFacelets + rightFacelets + upFacelets + downFacelets
+
         # FRONT FACE
-        for j in range(indexFront, indexFront + 4):
+        for j in frontFacelets:
             # facelet state
             facelet = oldState[j]
             fln = getFacelet(facelet) # retrieve facelet number
             # get the state when moved
             ns = createCubeFacelet(FRONT, movefacelet(fln), getColor(facelet))
-
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
         print "-----"
+
         # Rest of the faces that are changed
-        for j in range(indexFront+4, MAXFACELETS):
+        for j in changed:
             # facelet state
             facelet = oldState[j]
             facen = getFace(facelet)
 
             ns = createCubeFacelet(moveface(facen), getFacelet(facelet), getColor(facelet))
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
 
     def backMove(self, dir):
@@ -208,10 +255,12 @@ class RubiksCube:
         oldState = copy.deepcopy(self.States[self.CurrentStateNum])
         newState = copy.deepcopy(oldState)
         
-        # index of the back    
-        indexBack = (BACK-1)*4
+        # facelets being changed/unchanged
+        unchanged = frontFacelets
+        changed = leftFacelets + rightFacelets + upFacelets + downFacelets
+
         # BACK FACE
-        for j in range(indexBack, indexBack + 4):
+        for j in backFacelets:
             # facelet state
             facelet = oldState[j]
             fln = getFacelet(facelet) # retrieve facelet number
@@ -219,14 +268,12 @@ class RubiksCube:
             ns = createCubeFacelet(BACK, movefacelet(fln), getColor(facelet))
 
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
         print "-----"
         
-        # Rest of the faces that are changed
-        rangelist = range(0,indexBack) +range(indexBack+4,MAXFACELETS)
-        for j in rangelist:
+        # changed facelets
+        for j in changed:
             # facelet state
             facelet = oldState[j]
             facen = getFace(facelet)
@@ -235,8 +282,7 @@ class RubiksCube:
             ns = createCubeFacelet(moveface(facen), getFacelet(facelet), getColor(facelet))
 
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
 
     def leftMove(self, dir):
@@ -254,10 +300,12 @@ class RubiksCube:
         oldState = copy.deepcopy(self.States[self.CurrentStateNum])
         newState = copy.deepcopy(oldState)
         
-        # index of the left    
-        indexLeft = (LEFT-1)*4
+         # facelets being changed/unchanged
+        unchanged = rightFacelets
+        changed =  frontFacelets + backFacelets + upFacelets + downFacelets
+
         # LEFT FACE
-        for j in range(indexLeft, indexLeft + 4):
+        for j in leftFacelets:
             # facelet state
             facelet = oldState[j]
             fln = getFacelet(facelet) # retrieve facelet number
@@ -265,13 +313,11 @@ class RubiksCube:
             ns = createCubeFacelet(LEFT, movefacelet(fln), getColor(facelet))
 
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
         print "-----"
         
-        # Rest of the faces that are changed
-        rangelist = range(0,indexLeft) +range(indexLeft+4,MAXFACELETS)
+        # changed
         for j in rangelist:
             # facelet state
             facelet = oldState[j]
@@ -281,8 +327,7 @@ class RubiksCube:
             ns = createCubeFacelet(moveface(facen), getFacelet(facelet), getColor(facelet))
 
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
 
     def rightMove(self, dir):
@@ -299,11 +344,13 @@ class RubiksCube:
         # create new deep copies of states
         oldState = copy.deepcopy(self.States[self.CurrentStateNum])
         newState = copy.deepcopy(oldState)
-        
-        # index of the right    
-        indexRight = (RIGHT-1)*4
+
+        # facelets being changed/unchanged
+        unchanged = leftFacelets
+        changed =  frontFacelets + backFacelets + upFacelets + downFacelets
+
         # RIGHT FACE
-        for j in range(indexRight, indexRight + 4):
+        for j in rightFacelets:
             # facelet state
             facelet = oldState[j]
             fln = getFacelet(facelet) # retrieve facelet number
@@ -311,14 +358,11 @@ class RubiksCube:
             ns = createCubeFacelet(RIGHT, movefacelet(fln), getColor(facelet))
 
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
         print "-----"
         
-        # Rest of the faces that are changed
-        rangelist = range(0,indexRight) +range(indexRight+4,MAXFACELETS)
-        for j in rangelist:
+        for j in changed:
             # facelet state
             facelet = oldState[j]
             facen = getFace(facelet)
@@ -327,8 +371,7 @@ class RubiksCube:
             ns = createCubeFacelet(moveface(facen), getFacelet(facelet), getColor(facelet))
 
             # generate the string
-            pclause = colorFunctionCubeState(ns, self.CurrentStateNum+1)
-            pclause = pclause + ' = ' + colorFunctionCubeState(oldState[j], self.CurrentStateNum)
+            pclause = colorEquals(oldState[j],self.CurrentStateNum, ns, nextStateNum)
             print pclause
 
     #incompleted
