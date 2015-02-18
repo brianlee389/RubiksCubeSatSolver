@@ -22,6 +22,30 @@ def half(facelet):
     f = [3, 2, 1, 0]
     return f[facelet]
 
+# up,down,front,back faces need side facelet transitions
+# f = [front,front,back,back,up,up,down,down]
+def cwleft(facelet):
+    f = [0,2,0,2,0,2,3,1]
+    return f[facelet]
+# counter clockwise -90
+def ccwleft(facelet):
+    f = [0,2,0,2,3,1,0,2]
+    return f[facelet]
+# half turn 180
+def halfleft(facelet):
+    f = [3,1,0,2,0,2,0,2]
+    return f[facelet]
+
+def cwright(facelet):
+    return ccwleft(facelet)
+# counter clockwise -90
+def ccwright(facelet):
+    return cwleft(facelet)
+# half turn 180
+def halfright(facelet):
+    return halfleft(facelet)
+
+
 # Side facelet transitions
 # G - clockwise
 # Gprime - counterclockwise
@@ -47,7 +71,7 @@ def rightG(face):
     elif face == UP:
         return BACK
     elif face == BACK:
-        return DOWN:
+        return DOWN
     elif face == DOWN:
         return FRONT
 
@@ -57,7 +81,7 @@ def rightGprime(face):
     elif face == UP:
         return FRONT
     elif face == BACK:
-        return UP:
+        return UP
     elif face == DOWN:
         return BACK
 
@@ -67,7 +91,7 @@ def rightG2(face):
     elif face == UP:
         return DOWN
     elif face == BACK:
-        return FRONT:
+        return FRONT
     elif face == DOWN:
         return UP
 
@@ -84,7 +108,7 @@ def frontG(face):
     elif face == UP:
         return RIGHT
     elif face == RIGHT:
-        return DOWN:
+        return DOWN
     elif face == DOWN:
         return LEFT
 
@@ -94,7 +118,7 @@ def frontGprime(face):
     elif face == UP:
         return LEFT
     elif face == RIGHT:
-        return UP:
+        return UP
     elif face == DOWN:
         return RIGHT
 
@@ -102,11 +126,12 @@ def frontG2(face):
     if face == LEFT:
         return RIGHT
     elif face == RIGHT:
-        return LEFT:
+        return LEFT
     elif face == UP:
         return DOWN
     elif face == DOWN:
         return UP
+
 # back is the opposite of front
 def backG(face):
     return frontGprime(face)
