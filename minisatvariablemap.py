@@ -23,6 +23,7 @@ class environment:
 
 env = environment(15,3)
 
+#lookup function for integer map
 def l(ch, m, i=0, j=0, k=0):
     """
     color map
@@ -40,3 +41,4 @@ def l(ch, m, i=0, j=0, k=0):
         return x if ( x < env.state_variable_max + 1 ) else None
     x = env.move_variable_min + env.move_map[ch] + 24*m
     return x if ( x < env.move_variable_max + 1 ) else None
+
