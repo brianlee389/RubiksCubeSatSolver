@@ -42,3 +42,41 @@ def l(ch, m, i=0, j=0, k=0):
     x = env.move_variable_min + env.move_map[ch] + 24*m
     return x if ( x < env.move_variable_max + 1 ) else None
 
+# takes a variable number and retrieves
+# the state, face, facelet, and colorbit value the variable represents
+def reverseLookup(v):
+    if v == 0:
+        print("Cannot be 0")
+        return -1
+    
+    #variables per state
+    VPS = 72
+    # variables per face
+    VPF = 12
+    # variables per facelet
+    VPFL = 3
+
+    # since variables are represented with 1-1080
+    # the reverse lookup needs to have the value: 0-1079
+    shiftv = v - 1
+    # state number(must start from 1 so plus 1)
+    m = shiftv / VPS + 1
+    
+    # so we only need 72 variables, to determine face number
+    shiftv = shiftv%VPS
+    
+    # face number(must start from 1 so plus 1)
+    i = shiftv / VPF + 1
+    
+    # we only need the 12 variables
+    shiftv = shiftv % VPF
+
+    # facelet number
+    j = shiftv / VPFL
+
+    # color bit(must start from 1 so plus 1)
+    k = shiftv % VPFL
+
+    cf = (m,i,j,k)
+    # what do we return?
+    return cf[0]
