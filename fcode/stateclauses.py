@@ -30,9 +30,10 @@ def generate_init_state_clause_list(cnums):
     for i in xrange(0,6):
         for j in xrange(0,4):
             for k in xrange(0,3):
-                number = lu('c', 1, i, j, k)
+                number = lu('c', 0, i, j, k)
                 aggregator.append([ number*get1(env.b_map[cnums[counter]][k]) ])
-                
+            counter = counter + 1
+    
     return aggregator
 
 def generate_final_state_clause_list():
@@ -75,7 +76,11 @@ def run(inputfilename):
         cnums = [env.c_map[c] for c in colors]
         init_state_clause_list = generate_init_state_clause_list(cnums)
 
-    return init_state_clause_list + \
-            generate_final_state_clause_list() + \
-            generate_is_mth_state_solved_clause_list()+ \
-            generate_exactly_one_state_solved_clause_list()
+    for i in init_state_clause_list:
+        for j in i:
+            print rlu(j)
+    # return init_state_clause_list  
+    # return init_state_clause_list + \
+    #         generate_final_state_clause_list() + \
+    #         generate_is_mth_state_solved_clause_list()+ \
+    #         generate_exactly_one_state_solved_clause_list()

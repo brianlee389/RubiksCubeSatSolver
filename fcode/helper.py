@@ -16,12 +16,14 @@ class environment:
     PRIME = 1
     DOUBLE = 2
 
-    c_map = {  'R': 1
-               ,'B': 2
-               ,'P': 3
-               ,'G': 4
-               ,'Y': 5
-               ,'W': 6
+    first_val = 123456789
+    
+    c_map = {  'R': 0
+               ,'B': 1
+               ,'P': 2
+               ,'G': 3
+               ,'Y': 4
+               ,'W': 5
                }
 
     b_map = { 0: [0,0,0]
@@ -58,11 +60,11 @@ class environment:
         assuming i, k start from 1, j starts from 0
         """
         self.color_variable_min = 0
-        self.color_variable_max = (max_m*6*4*3)-1
+        self.color_variable_max = (no_m*6*4*3)-1
         self.move_variable_min = self.color_variable_max +1
-        self.move_variable_max = self.move_variable_min + (24*max_m) -1
+        self.move_variable_max = self.move_variable_min + (24*no_m) -1
         self.state_variable_min = self.move_variable_max + 1
-        self.state_variable_max = self.state_variable_min + max_m-1
+        self.state_variable_max = self.state_variable_min + no_m-1
         self.no_m = no_m
 
 #keeping a generated environment variable
@@ -99,6 +101,8 @@ def lu(ch, m, i=0, j=0, k=0):
         face = i*4*3
         facelet = j*3
         x = state + face + facelet + k
+        if x==0:
+            return env.first_val
         return x if (x <= env.color_variable_max and env.color_variable_min <= x) else None
 
     """
@@ -116,6 +120,9 @@ def rlu(number):
     if( number < 0):
         return_string = "!"
         number = -number
+
+    if number == env.first_val:
+        number = 0
         
     if number >= env.color_variable_min and number <= env.color_variable_max:
         m = number/(6*4*3)
