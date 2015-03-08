@@ -1,45 +1,81 @@
-from helper import *
+# ---Start of Phase 1---
+# read from input file the state in the format
+# face i color starting letter, separated by space, a newline
 
-def generate_state_solved_clause_list():
+# eg.
+# B G P O
+# G P O P
+# Y Y Y Y
+# P B B B
+# G G O O
+# W W W W
+
+# program working:
+# map this color to its corresponding number
+
+# ---End of Phase 1---
+
+from helper import *
+import itertools
+
+def get1 (num):
+    return 1 if (num == 1) else -1
+
+def generate_init_state_clause_list(cnums):
+    """ 
+    Initializes 24 * 3 clauses corresponding to the initial state
+    """
+    aggregator = []
+    counter = 0
+    for i in xrange(0,6):
+        for j in xrange(0,4):
+            for k in xrange(0,3):
+                number = l('c', 1, i, j, k)
+                aggregator.append([ number*get1(env.b_map[cnums[counter]][k]) ])
+                
+    return aggregator
+
+def generate_final_state_clause_list():
+    aggregator = []
+    for i in xrange(0, 6):
+        for j in xrange(0,4):
+            for k in xrange(0, 3):
+                aggregator.append([lu('c', 14, i, j, k)])
+    return aggregator
+
+def generate_is_mth_state_solved_clause_list():
     """
     clauses for whether state m is solved
     """
     minisat_clauses = []
     aggregator = []
-    for m in xrange(env.state_variable_min, env.state_variable_max+1):
+    for m in xrange(0,15):
         for i in xrange(0, 6):
             for j in xrange(0, 4):
                 for k in xrange(0, 3):
-                    temp = generate_equal_clause_list(l('c', m, i, j, k), env.c_map(i, k))
-                    aggregator.append([-1*l('s', m)] + temp[0])
-                    aggregator.append([-1*l('s', m)] + temp[1])
-        minisat_clauses.append(aggregator)
+                    temp = generate_equal_clause_list(lu('c', m, i, j, k)
+                                                      , color(i, k))
+                    aggregator.append([-1*lu('s', m)] + temp[0])
+                    aggregator.append([-1*lu('s', m)] + temp[1])
+        minisat_clauses = minisat_clauses + aggregator
         aggregator = []
     return minisat_clauses
 
 
-def generate_atleast_one_clause_list():
-    """ 
-    creates the atleast one clauses 
-    """
-    aggregator = []
-    for counter in xrange(env.state_variable_min
-                          ,env.state_variable_max+1):
-        aggregator.append(counter)
-    
-    return aggregator
+#exactly one state is a solved state
+def generate_exactly_one_state_solved_clause_list():
+    return generate_exactly_one_clause_list(range(lu('s',0), lu('s',14)+1))
 
+#run the command
+def run():
+    with open('initstate.txt') as f:
+        lines = f.read().splitlines()
+        characters = [x.split() for x in lines]
+        colors = list(itertools.chain.from_iterable(characters))
+        cnums = [env.c_map[c] for c in colors]
+        init_state_clause_list = generate_init_state_clause_list(cnums)
 
-def generate_atmost_one_clause_list():
-    """ 
-    creates the atmost one clauses 
-    """
-    aggregator = []
-    minisat_clauses = []
-    for i in xrange(env.state_variable_min
-                          ,env.state_variable_max+1):
-        for j in xrange(i+1,env.state_variable_max+1):
-            aggregator.append([-1*i,-1*j])
-        minisat_clauses.append(aggregator)
-
-    return minisat_clauses
+    return init_state_clause_list + \
+            generate_final_state_clause_list() + \
+            generate_is_mth_state_solved_clause_list()+ \
+            generate_exactly_one_state_solved_clause_list()

@@ -35,29 +35,38 @@ vj_down  = [(2,3),(2,3),(2,3),(2,3)]
 #unchanged face
 unchanged_face = [0,1,3,2]
 
+#shift has value either 1 or 3
+# 1 => anticlockwise
+# 3 => clockwise
 
-def fi_u(i):
+CW = 3
+ACW = 1
+
+def fi_u(i, shift):
     # print "fi for ", i
     # print vi_side_z[i]
     # print vi_side_z[( (i+3) % 4 )]
-    return vi_side_z[( (i+3) % 4 )]
+    return vi_side_z[( (i+shift) % 4 )]
     
-def fj_u(i, j):
+def fj_u(i, j, shift):
     # print "fj for ", i, j
     # print vj_up[( i % 4 )]
     # print vj_up[( (i+3) % 4 )]
     index = tuple.index(vj_up[( i % 4 )], j)
-    return vj_up[( (i+3) % 4 )][index]
+    return vj_up[( (i+shift) % 4 )][index]
 
-def cw(i, j):
+def rotate(i, j, shift):
+    shift = (1 if shift == 3 else 3)
     index = list.index(unchanged_face, j)
-    return unchanged_face[(index+3)%4]
-    
+    return unchanged_face[(index+shift)%4]
+
 """generate clauses in CNF form of p = q"""
 def equal_clauses_list( p, q):
     return [ [p, (-1*q)], [(-1*p), q] ]
 
 def move_U():
+    rotation = ACW
+    move = "U'"
     minisat_clauses = []
     temp = []
 
@@ -68,15 +77,18 @@ def move_U():
         for i in xrange(0,3+1):
             for j in xrange(0,1+1):
                 for k in xrange(0,2+1):
-                    temp = equal_clauses_list( lu('c',m, i,j,k),lu('c',m-1,fi_u(i),fj_u(i,j),k) )
-                    [ elem.insert(0, -1*lu('U',m)) for elem in temp ]
+                    temp = equal_clauses_list( lu('c',m, i,j,k),lu('c',m-1
+                                                                   ,fi_u(i, rotation)
+                                                                   ,fj_u(i,j, rotation),k) )
+                    [ elem.insert(0, -1*lu(move,m)) for elem in temp ]
                     aggregate = aggregate + temp
             
         #the 5th face
         for j in xrange(0,3+1):
             for k in xrange(0,2+1):
-                temp = equal_clauses_list( lu('c',m, 5-1,j,k),lu('c',m-1, 5-1, cw(5-1,j),k) )
-                [ i.insert(0, -1*lu('U',m)) for i in temp ]
+                temp = equal_clauses_list( lu('c',m, 5-1,j,k),lu('c',m-1, 5-1
+                                                                 ,rotate(5-1,j, rotation),k) )
+                [ i.insert(0, -1*lu(move,m)) for i in temp ]
                 aggregate = aggregate + temp 
                     
         minisat_clauses = minisat_clauses + aggregate
@@ -112,17 +124,24 @@ def move_u():
 
 #generate the exactly one moveset clauses
 def exactly_one_move_set():
-    move_keys = []
-    for z in env.move_map.keys():
-        if env.move_map[z] <=5:
-            move_keys.append(z)
-
     aggregator = []
     temp = []
     for m in xrange(0, 15):
-        for z in move_keys:
+        for z in env.move_set:
             temp = generate_exactly_one_clause_list([lu(z.upper(), m), lu(z.upper() + "'", m), lu('2' + z.upper(), m)])
             [ elem.insert(0, -1*lu(z,m)) for elem in temp ]
             aggregator = aggregator + temp
     return aggregator
-    
+
+#constrain consecutive disjoint moves clauses
+def no_two_consecutive_disjoint_moves():
+    aggregator = []
+    for m in xrange(0,15-1):
+        aggregator.append([-1* lu('u', m), -1* lu('d', m+1)])
+        aggregator.append([-1* lu('l', m), -1* lu('r', m+1)])
+        aggregator.append([-1* lu('f', m), -1* lu('b', m+1)])
+    return aggregator
+
+
+def run():
+    move_U()
