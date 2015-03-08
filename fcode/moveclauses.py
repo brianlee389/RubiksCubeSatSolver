@@ -2,55 +2,43 @@ import time
 from random import shuffle
 from helper import *
 
+face_map = {"x": [1,4,3,5],
+            "y": [0,4,3,5],
+            "z": [0,1,2,3],
+            }
 
+axis_map = { "f": "x",
+             "b": "x",
+             "l": "y",
+             "r": "y",
+             "u": "z",
+             "d": "z"
+             }
 
-#top-x rotation plane mappings
-#for f, f', b, b', 2F, 2B
-vi_top_x = [1,4,3,5]
-#F  => go clockwise
-#F' => go anti-clockwise
-vj_front = [(3,1),(2,3),(0,2),(1,0)]
-#B  => go ant-clockwise
-#B' => go clockwise
-vj_back  = [(2,0),(0,1),(1,3),(3,2)]
+move_facelet_map = {"f": [(3,1),(2,3),(0,2),(1,0)],
+                    "b": [(2,0),(0,1),(1,3),(3,2)],
+                    "l": [(2,0),(2,0),(1,3),(2,0)],
+                    "r": [(3,1),(3,1),(0,2),(3,1)],
+                    "u": [(0,1),(0,1),(0,1),(0,1)],
+                    "d": [(2,3),(2,3),(2,3),(2,3)]
+                    }
 
-#top-y rotation plane mappings
-#for r, r', l, l', l2, r2
-vi_top_y = [0,4,3,5]
-#R  => go clockwise
-#R' => go anti-clockwise
-vj_right = [(3,1),(3,1),(0,2),(3,1)]
-#L  => go anti-clockwise
-#L' => go clockwise
-vj_left  = [(2,0),(2,0),(1,3),(2,0)]
-
-#top-z rotation plane mappings
-#for u, u', d, d', u2, d2
-vi_side_z = [0,1,2,3]
-#U  => go clockwise
-#U' => go anti-clockwise
-vj_up = [(0,1),(0,1),(0,1),(0,1)]
-#D  => go anti-clockwise
-#D' => go clockwise
-vj_down  = [(2,3),(2,3),(2,3),(2,3)]
 #unchanged face
 unchanged_face = [0,1,3,2]
 
-
-def fi_u(i, shift):
+def fi(move_ch, i, shift):
     # print "fi for ", i
     # print vi_side_z[i]
     # print vi_side_z[( (i+3) % 4 )]
-    return vi_side_z[( (i+shift) % 4 )]
+    return face_map[axis_map[move_ch]][(i+shift) % 4]
     
-def fj_u(i, j, shift):
+def fj(move_ch, i, j, shift):
     # print "fj for ", i, j
     # print vj_up[( i % 4 )]
     # print vj_up[( (i+3) % 4 )]
-    index = tuple.index(vj_up[( i % 4 )], j)
-    return vj_up[( (i+shift) % 4 )][index]
+    return move_facelet_map[move_ch][ (i+shift) % 4 ][j]
 
-def rotate(i, j, shift):
+def rotate(j, shift):
     if shift != 2:
         shift = (shift + 2) %4
     index = list.index(unchanged_face, j)
@@ -60,29 +48,37 @@ def rotate(i, j, shift):
 def equal_clauses_list( p, q):
     return [ [p, (-1*q)], [(-1*p), q] ]
 
-def move_U(rotation):
-    move_string = get_move_string("U", rotation)
+#one per move, 3 per move set
+def move_changed(move_ch, rotation):
+    move_string = get_move_string(move_ch, rotation)
     minisat_clauses = []
     temp = []
 
     #the changed part clauses
-    for m in xrange(1, 2):
+    for m in xrange(1, 15):
         aggregate = []
-        #the 1,2,3,4 faces
-        for i in xrange(0,3+1):
-            for j in xrange(0,1+1):
+        #the slided faces
+        for i in xrange(0,4):
+            for j in xrange(0,2):
                 for k in xrange(0,2+1):
-                    temp = equal_clauses_list( lu('c',m, i,j,k),lu('c',m-1
-                                                                   ,fi_u(i, rotation)
-                                                                   ,fj_u(i,j, rotation),k) )
+                    temp = equal_clauses_list( lu('c'
+                                                  ,m
+                                                  ,face_map[axis_map[move_ch]][i]
+                                                  ,move_facelet_map[move_ch][i][j],k)
+                                               ,lu('c'
+                                                   ,m-1
+                                                   ,fi(move_ch, i, rotation)
+                                                   ,fj(move_ch, i, j, rotation),k) )
                     [ elem.insert(0, -1*lu(move_string,m)) for elem in temp ]
                     aggregate = aggregate + temp
-            
-        #the 5th face
+
+        rotated_face_number = env.move_set.index(move_ch)
+        #the rotated face
         for j in xrange(0,3+1):
             for k in xrange(0,2+1):
-                temp = equal_clauses_list( lu('c',m, 5-1,j,k),lu('c',m-1, 5-1
-                                                                 ,rotate(5-1,j, rotation),k) )
+                temp = equal_clauses_list( lu('c',m, rotated_face_number,j,k)
+                                           ,lu('c',m-1, rotated_face_number
+                                               , rotate(j, rotation),k) )
                 [ i.insert(0, -1*lu(move_string,m)) for i in temp ]
                 aggregate = aggregate + temp 
                     
@@ -90,26 +86,37 @@ def move_U(rotation):
 
     return minisat_clauses
 
-def move_u():
+#one per move set
+def move_unchanged(move_ch):
     minisat_clauses = []
     temp = []
 
+    unchgd_findex = env.opposite_fmap[env.move_set.index(move_ch)]
+    opp_move_ch = env.move_set[unchgd_findex]
     #the unchanged part clauses
-    for m in xrange(1, 2):
+    for m in xrange(1, 15):
         aggregate = []
-        #the 6th face
+        #the opposite unchanged face
         for j in xrange(0,3+1):
             for k in xrange(0,2+1):
-                temp = equal_clauses_list( lu('c',m, 6-1,j,k),lu('c',m-1,6-1,j,k) )
-                [ elem.insert(0, -1*lu('u',m)) for elem in temp ]
+                temp = equal_clauses_list( lu('c',m, unchgd_findex,j,k)
+                                           ,lu('c',m-1,unchgd_findex,j,k) )
+                [ elem.insert(0, -1*lu(move_ch,m)) for elem in temp ]
                 aggregate = aggregate + temp
-                
+
         #the unchanged facelets
         for i in xrange(0,3+1):
-            for j in xrange(2,3+1):
+            for j in xrange(0,2):
                 for k in xrange(0,2+1):
-                    temp = equal_clauses_list( lu('c', m, i, j, k),lu('c', m-1, i, j, k) )
-                    [ elem.insert(0, -1*lu('u',m)) for elem in temp ]
+                    temp = equal_clauses_list( lu('c'
+                                                  ,m
+                                                  ,face_map[axis_map[opp_move_ch]][i]
+                                                  ,move_facelet_map[opp_move_ch][i][j],k)
+                                                  ,lu('c'
+                                                      ,m-1
+                                                      ,face_map[axis_map[opp_move_ch]][i]
+                                                      ,move_facelet_map[opp_move_ch][i][j],k) )
+                    [ elem.insert(0, -1*lu(move_ch,m)) for elem in temp ]
                     aggregate = aggregate + temp
                     
         minisat_clauses = minisat_clauses + aggregate
@@ -139,4 +146,15 @@ def no_two_consecutive_disjoint_moves():
 
 
 def run():
-    move_U()
+    aggregator = []
+    #the move clauses
+    for move in env.move_set:
+        aggregator = aggregator + move_unchanged(move)
+        aggregator = aggregator + move_changed(move, env.NORMAL)
+        aggregator = aggregator + move_changed(move, env.PRIME)
+        aggregator = aggregator + move_changed(move, env.DOUBLE)
+
+    aggregator = aggregator + exactly_one_move_set()
+    aggregator = aggregator + no_two_consecutive_disjoint_moves()
+
+    return aggregator

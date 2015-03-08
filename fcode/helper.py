@@ -32,6 +32,15 @@ class environment:
               ,5: [1,0,1]
               }
 
+    opposite_fmap = {
+        0:2,
+        1:3,
+        2:0,
+        3:1,
+        4:5,
+        5:4
+        }
+
     def __str__(self):
         return ("color variable range: ( %d, %d )\n" +
                 "move variable range: ( %d, %d )\n"  +
