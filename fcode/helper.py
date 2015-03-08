@@ -7,7 +7,15 @@ class environment:
                  ,"2F":18, "2L":19, "2B":20, "2R":21, "2U":22, "2D":23 }
 
     rmove_map = dict((v, k) for k, v in move_map.iteritems())
-    
+
+    #shift has value either 1 or 3
+    # 1 => anticlockwise
+    # 3 => clockwise
+
+    NORMAL = 3
+    PRIME = 1
+    DOUBLE = 2
+
     c_map = {  'R': 1
                ,'B': 2
                ,'P': 3
@@ -48,6 +56,15 @@ class environment:
 
 #keeping a generated environment variable
 env = environment(15)
+
+def get_move_string(move, rotation):
+    if rotation == env.NORMAL:
+        return move.upper()
+    if rotation == env.PRIME:
+        return "%s'" % move.upper()
+    if rotation == env.DOUBLE:
+        return "2%s" % move.upper()
+    
 
 def assert_limits(i,j,k):
     assert(i < 6 and i >= 0), i

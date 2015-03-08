@@ -3,6 +3,7 @@ from random import shuffle
 from helper import *
 
 
+
 #top-x rotation plane mappings
 #for f, f', b, b', 2F, 2B
 vi_top_x = [1,4,3,5]
@@ -35,12 +36,6 @@ vj_down  = [(2,3),(2,3),(2,3),(2,3)]
 #unchanged face
 unchanged_face = [0,1,3,2]
 
-#shift has value either 1 or 3
-# 1 => anticlockwise
-# 3 => clockwise
-
-CW = 3
-ACW = 1
 
 def fi_u(i, shift):
     # print "fi for ", i
@@ -56,7 +51,8 @@ def fj_u(i, j, shift):
     return vj_up[( (i+shift) % 4 )][index]
 
 def rotate(i, j, shift):
-    shift = (1 if shift == 3 else 3)
+    if shift != 2:
+        shift = (shift + 2) %4
     index = list.index(unchanged_face, j)
     return unchanged_face[(index+shift)%4]
 
@@ -64,9 +60,8 @@ def rotate(i, j, shift):
 def equal_clauses_list( p, q):
     return [ [p, (-1*q)], [(-1*p), q] ]
 
-def move_U():
-    rotation = ACW
-    move = "U'"
+def move_U(rotation):
+    move_string = get_move_string("U", rotation)
     minisat_clauses = []
     temp = []
 
@@ -80,7 +75,7 @@ def move_U():
                     temp = equal_clauses_list( lu('c',m, i,j,k),lu('c',m-1
                                                                    ,fi_u(i, rotation)
                                                                    ,fj_u(i,j, rotation),k) )
-                    [ elem.insert(0, -1*lu(move,m)) for elem in temp ]
+                    [ elem.insert(0, -1*lu(move_string,m)) for elem in temp ]
                     aggregate = aggregate + temp
             
         #the 5th face
@@ -88,7 +83,7 @@ def move_U():
             for k in xrange(0,2+1):
                 temp = equal_clauses_list( lu('c',m, 5-1,j,k),lu('c',m-1, 5-1
                                                                  ,rotate(5-1,j, rotation),k) )
-                [ i.insert(0, -1*lu(move,m)) for i in temp ]
+                [ i.insert(0, -1*lu(move_string,m)) for i in temp ]
                 aggregate = aggregate + temp 
                     
         minisat_clauses = minisat_clauses + aggregate
