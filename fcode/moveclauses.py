@@ -55,7 +55,7 @@ def move_changed(move_ch, rotation):
     temp = []
 
     #the changed part clauses
-    for m in xrange(1, 15):
+    for m in xrange(1, env.no_m):
         aggregate = []
         #the slided faces
         for i in xrange(0,4):
@@ -94,7 +94,7 @@ def move_unchanged(move_ch):
     unchgd_findex = env.opposite_fmap[env.move_set.index(move_ch)]
     opp_move_ch = env.move_set[unchgd_findex]
     #the unchanged part clauses
-    for m in xrange(1, 15):
+    for m in xrange(1, env.no_m):
         aggregate = []
         #the opposite unchanged face
         for j in xrange(0,3+1):
@@ -128,7 +128,7 @@ def move_unchanged(move_ch):
 def exactly_one_move_set():
     aggregator = []
     temp = []
-    for m in xrange(0, 15):
+    for m in xrange(0, env.no_m):
         for z in env.move_set:
             temp = generate_exactly_one_clause_list([lu(z.upper(), m), lu(z.upper() + "'", m), lu('2' + z.upper(), m)])
             [ elem.insert(0, -1*lu(z,m)) for elem in temp ]
@@ -138,7 +138,7 @@ def exactly_one_move_set():
 #constrain consecutive disjoint moves clauses
 def no_two_consecutive_disjoint_moves():
     aggregator = []
-    for m in xrange(0,15-1):
+    for m in xrange(0,env.no_m-1):
         aggregator.append([-1* lu('u', m), -1* lu('d', m+1)])
         aggregator.append([-1* lu('l', m), -1* lu('r', m+1)])
         aggregator.append([-1* lu('f', m), -1* lu('b', m+1)])

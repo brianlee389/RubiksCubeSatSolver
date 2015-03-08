@@ -30,7 +30,7 @@ def generate_init_state_clause_list(cnums):
     for i in xrange(0,6):
         for j in xrange(0,4):
             for k in xrange(0,3):
-                number = l('c', 1, i, j, k)
+                number = lu('c', 1, i, j, k)
                 aggregator.append([ number*get1(env.b_map[cnums[counter]][k]) ])
                 
     return aggregator
@@ -40,7 +40,7 @@ def generate_final_state_clause_list():
     for i in xrange(0, 6):
         for j in xrange(0,4):
             for k in xrange(0, 3):
-                aggregator.append([lu('c', 14, i, j, k)])
+                aggregator.append([lu('c', env.no_m-1, i, j, k)])
     return aggregator
 
 def generate_is_mth_state_solved_clause_list():
@@ -49,7 +49,7 @@ def generate_is_mth_state_solved_clause_list():
     """
     minisat_clauses = []
     aggregator = []
-    for m in xrange(0,15):
+    for m in xrange(0,env.no_m):
         for i in xrange(0, 6):
             for j in xrange(0, 4):
                 for k in xrange(0, 3):
@@ -64,11 +64,11 @@ def generate_is_mth_state_solved_clause_list():
 
 #exactly one state is a solved state
 def generate_exactly_one_state_solved_clause_list():
-    return generate_exactly_one_clause_list(range(lu('s',0), lu('s',14)+1))
+    return generate_exactly_one_clause_list(range(lu('s',0), lu('s',env.no_m-1)+1))
 
 #run the command
-def run():
-    with open('initstate.txt') as f:
+def run(inputfilename):
+    with open(inputfilename) as f:
         lines = f.read().splitlines()
         characters = [x.split() for x in lines]
         colors = list(itertools.chain.from_iterable(characters))
