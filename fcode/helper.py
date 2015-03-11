@@ -52,7 +52,7 @@ class environment:
                                                          , self.move_variable_min
                                                          , self.move_variable_max
                                                          , self.state_variable_min
-                                                         , self.state_variable_max)        
+                                                         , self.state_variable_max)
 
     def __init__(self, no_m):
         """
@@ -60,7 +60,7 @@ class environment:
         assuming i, k start from 1, j starts from 0
         """
         self.color_variable_min = 0
-        self.color_variable_max = (no_m*6*4*3)-1
+        self.color_variable_max = ((no_m+1)*6*4*3)-1
         self.move_variable_min = self.color_variable_max +1
         self.move_variable_max = self.move_variable_min + (24*no_m) -1
         self.state_variable_min = self.move_variable_max + 1
@@ -68,7 +68,7 @@ class environment:
         self.no_m = no_m
 
 #keeping a generated environment variable
-env = environment(15)
+env = environment(5)
 
 def get_move_string(move, rotation):
     if rotation == env.NORMAL:
@@ -85,8 +85,8 @@ def assert_limits(i,j,k):
     assert(k < 3 and k >= 0), k
 
 #lookup the final state color bit
-def color(i, k):
-    return lu('c', env.max_m-1, i, 0, k)
+def solved_color(i, k):
+    return lu('c', env.no_m, i, 0, k)
     
 #lookup function for integer map
 def lu(ch, m, i=0, j=0, k=0):
@@ -94,7 +94,7 @@ def lu(ch, m, i=0, j=0, k=0):
     color map
     assuming all m, i, j, k are 0 indexed
     """
-    assert( m < env.no_m and m >= 0 )
+    assert( m <= env.no_m and m >= 0 )
     if( ch == 'c' ):
         assert_limits(i,j,k)
         state = m*6*4*3

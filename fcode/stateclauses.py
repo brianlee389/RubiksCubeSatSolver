@@ -36,13 +36,20 @@ def generate_init_state_clause_list(cnums):
     
     return aggregator
 
-def generate_final_state_clause_list():
+def generate_solved_state_clause_list():
+    """ 
+    Initializes 24 * 3 clauses corresponding to the solved state
+    """
     aggregator = []
-    for i in xrange(0, 6):
+    counter = 0
+    for i in xrange(0,6):
         for j in xrange(0,4):
-            for k in xrange(0, 3):
-                aggregator.append([lu('c', env.no_m-1, i, j, k)])
+            for k in xrange(0,3):
+                number = lu('c', env.no_m, i, j, k)
+                aggregator.append([ number*get1(env.b_map[i][k]) ])
+            counter = counter + 1    
     return aggregator
+
 
 def generate_is_mth_state_solved_clause_list():
     """
@@ -55,7 +62,7 @@ def generate_is_mth_state_solved_clause_list():
             for j in xrange(0, 4):
                 for k in xrange(0, 3):
                     temp = generate_equal_clause_list(lu('c', m, i, j, k)
-                                                      , color(i, k))
+                                                      , solved_color(i, k))
                     aggregator.append([-1*lu('s', m)] + temp[0])
                     aggregator.append([-1*lu('s', m)] + temp[1])
         minisat_clauses = minisat_clauses + aggregator
@@ -76,11 +83,8 @@ def run(inputfilename):
         cnums = [env.c_map[c] for c in colors]
         init_state_clause_list = generate_init_state_clause_list(cnums)
 
-    for i in init_state_clause_list:
-        for j in i:
-            print rlu(j)
     # return init_state_clause_list  
-    # return init_state_clause_list + \
-    #         generate_final_state_clause_list() + \
-    #         generate_is_mth_state_solved_clause_list()+ \
-    #         generate_exactly_one_state_solved_clause_list()
+    return init_state_clause_list + \
+            generate_solved_state_clause_list() + \
+            generate_is_mth_state_solved_clause_list()+ \
+            generate_exactly_one_state_solved_clause_list()
