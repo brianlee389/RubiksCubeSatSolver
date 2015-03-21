@@ -68,7 +68,7 @@ class environment:
         self.no_m = no_m
 
 #keeping a generated environment variable
-env = environment(5)
+env = environment(3)
 
 def get_move_string(move, rotation):
     if rotation == env.NORMAL:

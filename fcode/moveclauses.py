@@ -75,7 +75,7 @@ def move_changed(move_ch, rotation):
                 temp = equal_clauses_list( lu('c',m, rotated_face_number,j,k)
                                            ,lu('c',m-1, rotated_face_number
                                                , rotate(j, rotation),k) )
-                [ i.insert(0, -1*lu(move_string,m)) for i in temp ]
+                [ elem.insert(0, -1*lu(move_string,m)) for elem in temp ]
                 aggregate = aggregate + temp 
                     
         minisat_clauses = minisat_clauses + aggregate

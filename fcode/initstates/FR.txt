@@ -1,0 +1,6 @@
+R G R W
+B W B W
+B P Y P
+Y Y G G
+Y R B R
+G P W P
